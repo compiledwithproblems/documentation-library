@@ -38,25 +38,66 @@ jobs:
             echo "affected=$SOURCES" >> $GITHUB_OUTPUT
           fi
 
-      - name: Trigger ingest for each source
+      - name: Fetch source registry from API
         if: steps.sources.outputs.affected != ''
+        id: registry
         env:
           API_URL: ${{ secrets.PIPELINE_API_URL }}
           API_KEY: ${{ secrets.PIPELINE_API_KEY }}
         run: |
           if [ -z "$API_URL" ]; then
-            echo "PIPELINE_API_URL secret not set, skipping ingest trigger"
+            echo "PIPELINE_API_URL secret not set, skipping"
+            echo "skip=true" >> $GITHUB_OUTPUT
             exit 0
           fi
 
-          for SOURCE in ${{ steps.sources.outputs.affected }}; do
-            echo "Triggering ingest for: $SOURCE"
+          echo "Fetching source registry from API..."
+          RESPONSE=$(curl -s -w "\n%{http_code}" "${API_URL}/sources" \
+            -H "Authorization: Bearer ${API_KEY}")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
+            echo "✅ Successfully fetched source registry"
+            # Save the response for the next step
+            echo "$BODY" > /tmp/sources.json
+            echo "skip=false" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Failed to fetch source registry (HTTP $HTTP_CODE)"
+            echo "$BODY"
+            exit 1
+          fi
+
+      - name: Trigger ingest for each source
+        if: steps.sources.outputs.affected != '' && steps.registry.outputs.skip != 'true'
+        env:
+          API_URL: ${{ secrets.PIPELINE_API_URL }}
+          API_KEY: ${{ secrets.PIPELINE_API_KEY }}
+        run: |
+          FAILED=0
+
+          for SOURCE_NAME in ${{ steps.sources.outputs.affected }}; do
+            echo "Looking up source ID for: $SOURCE_NAME"
+
+            # Extract the UUID for this source name from the registry
+            # The API returns { "success": true, "data": [{ "id": "uuid", "name": "apple", ... }] }
+            SOURCE_ID=$(cat /tmp/sources.json | jq -r --arg name "$SOURCE_NAME" '.data[] | select(.name == $name) | .id')
+
+            if [ -z "$SOURCE_ID" ] || [ "$SOURCE_ID" = "null" ]; then
+              echo "⚠️  Source '$SOURCE_NAME' not found in API registry, skipping"
+              echo "   (You may need to register this source with the API first)"
+              continue
+            fi
+
+            echo "Found source ID: $SOURCE_ID"
+            echo "Triggering ingest for: $SOURCE_NAME ($SOURCE_ID)"
 
             RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "${API_URL}/ingest" \
               -H "Content-Type: application/json" \
               -H "Authorization: Bearer ${API_KEY}" \
               -d "{
-                \"sourceId\": \"${SOURCE}\",
+                \"sourceId\": \"${SOURCE_ID}\",
                 \"mode\": \"incremental\"
               }")
 
@@ -64,17 +105,21 @@ jobs:
             BODY=$(echo "$RESPONSE" | sed '$d')
 
             if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
-              echo "✅ Successfully triggered ingest for $SOURCE"
+              echo "✅ Successfully triggered ingest for $SOURCE_NAME"
               echo "$BODY"
             else
-              echo "❌ Failed to trigger ingest for $SOURCE (HTTP $HTTP_CODE)"
+              echo "❌ Failed to trigger ingest for $SOURCE_NAME (HTTP $HTTP_CODE)"
               echo "$BODY"
-              exit 1
+              FAILED=1
             fi
           done
 
+          if [ "$FAILED" -eq 1 ]; then
+            exit 1
+          fi
+
       - name: Summary
-        if: steps.sources.outputs.affected != ''
+        if: steps.sources.outputs.affected != '' && steps.registry.outputs.skip != 'true'
         run: |
           echo "### 🔄 Pipeline Ingest Triggered" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
