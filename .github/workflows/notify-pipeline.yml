@@ -81,8 +81,8 @@ jobs:
             echo "Looking up source ID for: $SOURCE_NAME"
 
             # Extract the UUID for this source name from the registry
-            # The API returns { "success": true, "data": [{ "id": "uuid", "name": "apple", ... }] }
-            SOURCE_ID=$(cat /tmp/sources.json | jq -r --arg name "$SOURCE_NAME" '.data[] | select(.name == $name) | .id')
+            # The API returns { "success": true, "sources": [{ "id": "uuid", "name": "apple", ... }] }
+            SOURCE_ID=$(cat /tmp/sources.json | jq -r --arg name "$SOURCE_NAME" '.sources[] | select(.name == $name) | .id')
 
             if [ -z "$SOURCE_ID" ] || [ "$SOURCE_ID" = "null" ]; then
               echo "⚠️  Source '$SOURCE_NAME' not found in API registry, skipping"
