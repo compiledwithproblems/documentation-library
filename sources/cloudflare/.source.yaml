@@ -1,0 +1,47 @@
+# sources/cloudflare/.source.yaml
+# Per-source configuration and metadata
+
+name: cloudflare
+displayName: "Cloudflare Documentation"
+baseUrl: "https://developers.cloudflare.com"
+
+extraction:
+  primaryLanguage: javascript
+
+  selectors:
+    content:
+      - "main article"
+      - ".DocsMarkdown"
+      - "[class*='content']"
+    title:
+      - "h1"
+      - "article h1"
+    breadcrumb:
+      - "nav[aria-label='breadcrumb'] a"
+      - ".breadcrumb a"
+    version: []
+    codeBlocks:
+      - "pre code"
+      - ".CodeBlock"
+
+pathMappings:
+  workers: workers
+  pages: pages
+  r2: r2
+  d1: d1
+  vectorize: vectorize
+  ai: ai
+  kv: workers/kv
+  durable-objects: workers/durable-objects
+
+stats:
+  documentCount: 0
+  lastUpdated: null
+  lastCapturedAt: null
+  topContributors: []
+
+notes: |
+  Cloudflare documentation does not use versioning.
+  All content represents the current state of the platform.
+
+  Workers, Pages, R2, D1, and AI are primary product categories.

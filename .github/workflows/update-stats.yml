@@ -1,0 +1,65 @@
+name: Update Statistics
+
+on:
+  push:
+    branches: [main]
+    paths: ['sources/**']
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly on Sunday at midnight
+  workflow_dispatch:
+
+jobs:
+  update-stats:
+    name: Update Statistics
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: '.github/scripts/package-lock.json'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: .github/scripts
+
+      - name: Generate statistics
+        id: stats
+        run: node generate-stats.js
+        working-directory: .github/scripts
+        env:
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+
+      - name: Update README
+        run: node update-readme-stats.js
+        working-directory: .github/scripts
+        env:
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add sources/*/.source.yaml README.md
+
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: update documentation statistics"
+            git push
+          fi
+
+      - name: Summary
+        run: |
+          echo "### 📊 Statistics Updated" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Total documents: ${{ steps.stats.outputs.total || 'N/A' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Sources: ${{ steps.stats.outputs.sources || 'N/A' }}" >> $GITHUB_STEP_SUMMARY

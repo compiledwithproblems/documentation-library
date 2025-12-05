@@ -1,0 +1,47 @@
+# sources/mdn/.source.yaml
+# Per-source configuration and metadata
+
+name: mdn
+displayName: "MDN Web Docs"
+baseUrl: "https://developer.mozilla.org"
+
+extraction:
+  primaryLanguage: javascript
+
+  selectors:
+    content:
+      - "article.main-page-content"
+      - ".article-body"
+      - "main article"
+    title:
+      - "h1"
+      - "article h1"
+    breadcrumb:
+      - ".breadcrumbs a"
+      - "nav.breadcrumb a"
+    version:
+      - ".bc-browser-name"
+    codeBlocks:
+      - "pre code"
+      - ".code-example pre"
+
+pathMappings:
+  javascript: javascript
+  css: css
+  html: html
+  web-api: web-api
+  http: http
+  svg: svg
+
+stats:
+  documentCount: 0
+  lastUpdated: null
+  lastCapturedAt: null
+  topContributors: []
+
+notes: |
+  MDN Web Docs is the authoritative source for web platform documentation.
+  Content does not use versioning - always represents current standards.
+
+  Browser compatibility data is included but may be updated separately.
+  Locale is always en-US for this library.

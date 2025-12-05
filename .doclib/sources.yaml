@@ -1,0 +1,185 @@
+# Registered documentation sources
+# Each entry corresponds to a folder under sources/
+
+# =============================================================================
+# Source Definitions
+# =============================================================================
+
+sources:
+  # ---------------------------------------------------------------------------
+  # Apple Developer Documentation
+  # ---------------------------------------------------------------------------
+  apple:
+    displayName: "Apple Developer Documentation"
+    description: "Official documentation for Apple platforms and frameworks"
+    baseUrl: "https://developer.apple.com"
+
+    # Domains that map to this source
+    domains:
+      - developer.apple.com
+
+    # Version management strategy
+    versioning:
+      # Strategy types:
+      # - "platform": Versions like "iOS 18", "macOS 15"
+      # - "semver": Semantic versions like "18.0", "19.0"
+      # - "none": No versioning, always "latest"
+      strategy: platform
+      default: latest
+
+      # Tracked versions (for documentation purposes)
+      tracked:
+        - iOS 18
+        - iOS 17
+        - macOS 15
+        - macOS 14
+        - watchOS 11
+        - tvOS 18
+
+    # Primary languages in this documentation
+    languages:
+      - swift
+      - objective-c
+
+    # URL patterns for path derivation
+    pathPatterns:
+      "/documentation/swiftui": swiftui
+      "/documentation/uikit": uikit
+      "/documentation/foundation": foundation
+      "/documentation/combine": combine
+      "/documentation/appkit": appkit
+
+    # Source status
+    status: active  # active | deprecated | archived
+
+  # ---------------------------------------------------------------------------
+  # React Documentation
+  # ---------------------------------------------------------------------------
+  react:
+    displayName: "React Documentation"
+    description: "Official React documentation"
+    baseUrl: "https://react.dev"
+
+    domains:
+      - react.dev
+      - reactjs.org  # Legacy domain
+
+    versioning:
+      strategy: semver
+      default: latest
+      tracked:
+        - "19"
+        - "18"
+
+    languages:
+      - javascript
+      - typescript
+
+    pathPatterns:
+      "/reference/react": reference
+      "/learn": learn
+      "/blog": blog
+
+    status: active
+
+  # ---------------------------------------------------------------------------
+  # Cloudflare Documentation
+  # ---------------------------------------------------------------------------
+  cloudflare:
+    displayName: "Cloudflare Documentation"
+    description: "Cloudflare developer documentation"
+    baseUrl: "https://developers.cloudflare.com"
+
+    domains:
+      - developers.cloudflare.com
+
+    versioning:
+      strategy: none
+      default: latest
+
+    languages:
+      - javascript
+      - typescript
+      - rust
+      - python
+
+    pathPatterns:
+      "/workers": workers
+      "/pages": pages
+      "/r2": r2
+      "/d1": d1
+      "/vectorize": vectorize
+      "/ai": ai
+
+    status: active
+
+  # ---------------------------------------------------------------------------
+  # TypeScript Documentation
+  # ---------------------------------------------------------------------------
+  typescript:
+    displayName: "TypeScript Documentation"
+    description: "Official TypeScript documentation and handbook"
+    baseUrl: "https://www.typescriptlang.org"
+
+    domains:
+      - www.typescriptlang.org
+      - typescriptlang.org
+
+    versioning:
+      strategy: semver
+      default: latest
+      tracked:
+        - "5.x"
+        - "4.x"
+
+    languages:
+      - typescript
+
+    pathPatterns:
+      "/docs/handbook": handbook
+      "/docs/reference": reference
+
+    status: active
+
+  # ---------------------------------------------------------------------------
+  # MDN Web Docs
+  # ---------------------------------------------------------------------------
+  mdn:
+    displayName: "MDN Web Docs"
+    description: "Mozilla Developer Network web documentation"
+    baseUrl: "https://developer.mozilla.org"
+
+    domains:
+      - developer.mozilla.org
+
+    versioning:
+      strategy: none
+      default: latest
+
+    languages:
+      - javascript
+      - html
+      - css
+
+    pathPatterns:
+      "/en-US/docs/Web/JavaScript": javascript
+      "/en-US/docs/Web/CSS": css
+      "/en-US/docs/Web/HTML": html
+      "/en-US/docs/Web/API": web-api
+
+    status: active
+
+# =============================================================================
+# Domain Mapping (Quick Reference)
+# =============================================================================
+# This is auto-generated from source definitions above
+# Used by browser extension for path generation
+
+domainMapping:
+  developer.apple.com: apple
+  react.dev: react
+  reactjs.org: react
+  developers.cloudflare.com: cloudflare
+  www.typescriptlang.org: typescript
+  typescriptlang.org: typescript
+  developer.mozilla.org: mdn

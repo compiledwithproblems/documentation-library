@@ -1,0 +1,25 @@
+{
+  "name": "doclib-scripts",
+  "version": "1.0.0",
+  "description": "Validation and utility scripts for documentation-library",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "validate": "node validate-frontmatter.js",
+    "duplicates": "node check-duplicates.js",
+    "paths": "node validate-paths.js",
+    "sources": "node check-sources.js",
+    "fix": "node auto-fix.js",
+    "stats": "node generate-stats.js",
+    "stale": "node find-stale.js",
+    "readme": "node update-readme-stats.js",
+    "all": "npm run validate && npm run duplicates && npm run paths && npm run sources"
+  },
+  "dependencies": {
+    "ajv": "^8.12.0",
+    "ajv-formats": "^2.1.1",
+    "glob": "^10.3.10",
+    "gray-matter": "^4.0.3",
+    "yaml": "^2.3.4"
+  }
+}

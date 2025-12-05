@@ -1,0 +1,47 @@
+# Template for new source configuration
+# Copy to sources/{source-name}/.source.yaml
+
+name: [source-name]
+displayName: "[Human-Readable Name]"
+baseUrl: "https://[domain]"
+
+extraction:
+  # Primary programming language for this source
+  primaryLanguage: [language]
+
+  # CSS selectors for content extraction (used by browser extension)
+  selectors:
+    content:
+      - "[content-selector]"
+      - "main article"
+    title:
+      - "[title-selector]"
+      - "h1"
+    breadcrumb:
+      - "[breadcrumb-selector]"
+    version:
+      - "[version-selector]"
+    codeBlocks:
+      - "pre code"
+
+# URL path segment to local directory mappings
+pathMappings:
+  [url-segment]: [local-directory]
+  # Example:
+  # docs: documentation
+  # api: api-reference
+
+# Statistics (auto-updated by GitHub Actions)
+stats:
+  documentCount: 0
+  lastUpdated: null
+  lastCapturedAt: null
+  topContributors: []
+
+# Optional notes about this source
+notes: |
+  Add any special considerations for this documentation source here.
+  For example:
+  - JavaScript rendering requirements
+  - Version handling notes
+  - Content extraction tips

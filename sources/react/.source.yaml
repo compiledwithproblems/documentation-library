@@ -1,0 +1,45 @@
+# sources/react/.source.yaml
+# Per-source configuration and metadata
+
+name: react
+displayName: "React Documentation"
+baseUrl: "https://react.dev"
+
+extraction:
+  primaryLanguage: javascript
+
+  selectors:
+    content:
+      - "main article"
+      - ".markdown"
+      - "[class*='content']"
+    title:
+      - "h1"
+      - "article h1"
+    breadcrumb:
+      - "nav[aria-label='breadcrumb'] a"
+      - ".breadcrumb a"
+    version:
+      - "[data-version]"
+    codeBlocks:
+      - "pre code"
+      - ".sandpack pre"
+
+pathMappings:
+  reference: reference
+  learn: learn
+  blog: blog
+  hooks: reference/react
+
+stats:
+  documentCount: 0
+  lastUpdated: null
+  lastCapturedAt: null
+  topContributors: []
+
+notes: |
+  React documentation at react.dev is the primary source.
+  Legacy reactjs.org URLs should redirect to react.dev.
+
+  Version information stored in frontmatter.
+  Most content applies to React 18+.

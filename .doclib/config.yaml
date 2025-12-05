@@ -1,0 +1,175 @@
+# documentation-library global configuration
+# Schema version for migrations
+schemaVersion: 1
+
+# =============================================================================
+# Documentation Standards
+# =============================================================================
+
+frontmatter:
+  # Fields that must be present in every document
+  required:
+    - title           # Document title
+    - url             # Original source URL
+    - capturedAt      # ISO 8601 timestamp of capture
+
+  # Optional fields (validated if present)
+  optional:
+    - breadcrumb      # Array of navigation path segments
+    - version         # Version string (e.g., "iOS 18", "19", "latest")
+    - language        # Programming language (e.g., "swift", "typescript")
+    - source          # Source identifier (auto-derived from path if missing)
+    - lastModified    # Last modified date from source (if available)
+    - tags            # Array of tags for additional categorization
+
+  # Field validation rules
+  validation:
+    title:
+      type: string
+      minLength: 1
+      maxLength: 200
+
+    url:
+      type: string
+      format: uri
+
+    capturedAt:
+      type: string
+      format: date-time
+
+    breadcrumb:
+      type: array
+      items:
+        type: string
+      maxItems: 10
+
+    version:
+      type: string
+      maxLength: 50
+
+    language:
+      type: string
+      enum:
+        - swift
+        - objective-c
+        - javascript
+        - typescript
+        - python
+        - rust
+        - go
+        - java
+        - kotlin
+        - c
+        - cpp
+        - csharp
+        - ruby
+        - php
+        - html
+        - css
+        - sql
+        - shell
+        - yaml
+        - json
+        - markdown
+        - other
+
+# =============================================================================
+# Path Conventions
+# =============================================================================
+
+paths:
+  # Root directory for all documentation
+  sourcesRoot: sources
+
+  # Maximum directory depth under a source
+  # sources/apple/swiftui/views/text.md = depth 3 (swiftui/views/text.md)
+  maxDepth: 6
+
+  # File extension for documents
+  extension: .md
+
+  # Slug pattern for directory and file names
+  # Allows: lowercase letters, numbers, hyphens
+  slugPattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+
+  # Reserved names that cannot be used
+  reserved:
+    - .source.yaml
+    - .git
+    - node_modules
+    - README.md
+
+# =============================================================================
+# Quality Thresholds
+# =============================================================================
+
+quality:
+  # Minimum content length (characters, excluding frontmatter)
+  minContentLength: 100
+
+  # Maximum file size (bytes)
+  maxFileSize: 1048576  # 1MB
+
+  # Stale threshold (days since capture)
+  staleThresholdDays: 180
+
+  # Duplicate detection
+  duplicates:
+    # How to handle same URL
+    # "reject" - fail validation
+    # "warn" - warning only
+    # "allow-different-versions" - allow if versions differ
+    sameUrl: allow-different-versions
+
+# =============================================================================
+# Integrations
+# =============================================================================
+
+integrations:
+  # Webhook to notify RAG pipeline
+  pipeline:
+    enabled: true
+    # URL stored in GitHub secret: PIPELINE_WEBHOOK_URL
+    # API key stored in GitHub secret: PIPELINE_API_KEY
+    events:
+      - docs_added
+      - docs_updated
+      - docs_deleted
+
+  # Trigger full reindex on schedule
+  scheduledReindex:
+    enabled: false
+    cron: "0 0 * * 0"  # Weekly on Sunday
+
+# =============================================================================
+# GitHub Actions Configuration
+# =============================================================================
+
+actions:
+  # Run validation on these events
+  validate:
+    onPush: true
+    onPullRequest: true
+    paths:
+      - "sources/**"
+
+  # Auto-fix issues in PRs
+  autoFix:
+    enabled: true
+    fixes:
+      - normalize-urls
+      - format-dates
+      - add-source-field
+      - fix-breadcrumb-format
+
+  # Statistics updates
+  stats:
+    enabled: true
+    updateOnMerge: true
+    weeklyReport: true
+
+  # Stale documentation checks
+  staleCheck:
+    enabled: true
+    schedule: monthly
+    createIssue: true

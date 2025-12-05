@@ -1,0 +1,23 @@
+# CODEOWNERS - Define code ownership for documentation-library
+#
+# These owners will be requested for review when someone opens a pull request
+# that modifies files they own.
+#
+# Learn more: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners for everything in the repo
+* @btate
+
+# Configuration files
+/.doclib/ @btate
+/.github/ @btate
+
+# Validation scripts
+/.github/scripts/ @btate
+
+# Source-specific owners (uncomment and customize as needed)
+# /sources/apple/ @apple-docs-team
+# /sources/react/ @react-docs-team
+# /sources/cloudflare/ @cloudflare-docs-team
+# /sources/typescript/ @typescript-docs-team
+# /sources/mdn/ @mdn-docs-team

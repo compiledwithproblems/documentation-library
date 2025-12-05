@@ -1,0 +1,65 @@
+name: Validate Documentation
+
+on:
+  push:
+    branches: [main]
+    paths: ['sources/**']
+  pull_request:
+    branches: [main]
+    paths: ['sources/**']
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: '.github/scripts/package-lock.json'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: .github/scripts
+
+      - name: Validate frontmatter
+        run: node validate-frontmatter.js
+        working-directory: .github/scripts
+        env:
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+
+      - name: Check for duplicates
+        run: node check-duplicates.js
+        working-directory: .github/scripts
+        env:
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+
+      - name: Validate paths
+        run: node validate-paths.js
+        working-directory: .github/scripts
+        env:
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+
+      - name: Check source registration
+        run: node check-sources.js
+        working-directory: .github/scripts
+        env:
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "### 📋 Validation Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontmatter | ${{ steps.validate-frontmatter.outcome == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Duplicates | ${{ steps.check-duplicates.outcome == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Paths | ${{ steps.validate-paths.outcome == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Sources | ${{ steps.check-sources.outcome == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY

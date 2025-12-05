@@ -1,0 +1,101 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "source.schema.json",
+  "title": "Source Configuration",
+  "description": "Schema for validating .source.yaml files",
+  "type": "object",
+  "required": ["name", "displayName", "baseUrl"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "Source identifier (lowercase, hyphenated)"
+    },
+    "displayName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "Human-readable source name"
+    },
+    "baseUrl": {
+      "type": "string",
+      "format": "uri",
+      "description": "Base URL of the documentation source"
+    },
+    "extraction": {
+      "type": "object",
+      "properties": {
+        "primaryLanguage": {
+          "type": "string",
+          "description": "Primary programming language for this source"
+        },
+        "selectors": {
+          "type": "object",
+          "properties": {
+            "content": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "CSS selectors for main content"
+            },
+            "title": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "CSS selectors for page title"
+            },
+            "breadcrumb": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "CSS selectors for breadcrumb navigation"
+            },
+            "version": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "CSS selectors for version info"
+            },
+            "codeBlocks": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "CSS selectors for code blocks"
+            }
+          }
+        }
+      }
+    },
+    "pathMappings": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "URL path segment to local directory mappings"
+    },
+    "stats": {
+      "type": "object",
+      "properties": {
+        "documentCount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of documents in this source"
+        },
+        "lastUpdated": {
+          "type": ["string", "null"],
+          "format": "date-time",
+          "description": "Last time statistics were updated"
+        },
+        "lastCapturedAt": {
+          "type": ["string", "null"],
+          "format": "date-time",
+          "description": "Most recent document capture timestamp"
+        },
+        "topContributors": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Top contributors to this source"
+        }
+      }
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes about this source"
+    }
+  }
+}

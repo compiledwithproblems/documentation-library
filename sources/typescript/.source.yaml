@@ -1,0 +1,45 @@
+# sources/typescript/.source.yaml
+# Per-source configuration and metadata
+
+name: typescript
+displayName: "TypeScript Documentation"
+baseUrl: "https://www.typescriptlang.org"
+
+extraction:
+  primaryLanguage: typescript
+
+  selectors:
+    content:
+      - "article"
+      - ".markdown"
+      - "#handbook-content"
+    title:
+      - "h1"
+      - "article h1"
+    breadcrumb:
+      - "nav.sidebar a.active"
+      - ".breadcrumb a"
+    version:
+      - "[data-version]"
+    codeBlocks:
+      - "pre code"
+      - ".code-block"
+
+pathMappings:
+  handbook: handbook
+  reference: reference
+  declaration-files: declaration-files
+  project-config: project-config
+
+stats:
+  documentCount: 0
+  lastUpdated: null
+  lastCapturedAt: null
+  topContributors: []
+
+notes: |
+  TypeScript documentation includes the Handbook and API Reference.
+  Version information tracks major TypeScript versions (5.x, 4.x).
+
+  The Handbook is the primary learning resource.
+  Reference docs cover detailed API information.

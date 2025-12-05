@@ -1,0 +1,81 @@
+name: Notify Pipeline
+
+on:
+  push:
+    branches: [main]
+    paths: ['sources/**']
+
+jobs:
+  notify:
+    name: Notify RAG Pipeline
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Get changed files
+        id: changes
+        run: |
+          # Get list of changed markdown files
+          CHANGED=$(git diff --name-only HEAD~1 HEAD -- 'sources/**/*.md' || echo "")
+
+          # Count changes
+          ADDED=$(git diff --name-only --diff-filter=A HEAD~1 HEAD -- 'sources/**/*.md' | wc -l | tr -d ' ')
+          MODIFIED=$(git diff --name-only --diff-filter=M HEAD~1 HEAD -- 'sources/**/*.md' | wc -l | tr -d ' ')
+          DELETED=$(git diff --name-only --diff-filter=D HEAD~1 HEAD -- 'sources/**/*.md' | wc -l | tr -d ' ')
+
+          echo "changed<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGED" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          echo "added=$ADDED" >> $GITHUB_OUTPUT
+          echo "modified=$MODIFIED" >> $GITHUB_OUTPUT
+          echo "deleted=$DELETED" >> $GITHUB_OUTPUT
+          echo "total=$((ADDED + MODIFIED + DELETED))" >> $GITHUB_OUTPUT
+
+      - name: Determine affected sources
+        id: sources
+        run: |
+          SOURCES=$(echo "${{ steps.changes.outputs.changed }}" | \
+            grep -oP 'sources/\K[^/]+' | \
+            sort -u | \
+            tr '\n' ',' | \
+            sed 's/,$//' || echo "")
+          echo "affected=$SOURCES" >> $GITHUB_OUTPUT
+
+      - name: Notify pipeline
+        if: steps.changes.outputs.total != '0' && vars.PIPELINE_WEBHOOK_URL != ''
+        run: |
+          curl -X POST "${{ secrets.PIPELINE_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.PIPELINE_API_KEY }}" \
+            -d '{
+              "event": "docs_updated",
+              "repository": "${{ github.repository }}",
+              "ref": "${{ github.ref }}",
+              "commit": "${{ github.sha }}",
+              "sources": "${{ steps.sources.outputs.affected }}",
+              "stats": {
+                "added": ${{ steps.changes.outputs.added }},
+                "modified": ${{ steps.changes.outputs.modified }},
+                "deleted": ${{ steps.changes.outputs.deleted }},
+                "total": ${{ steps.changes.outputs.total }}
+              },
+              "triggeredBy": "${{ github.actor }}",
+              "timestamp": "${{ github.event.head_commit.timestamp }}"
+            }' || echo "Webhook notification skipped or failed"
+
+      - name: Summary
+        run: |
+          echo "### 📚 Documentation Update" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Count |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Added | ${{ steps.changes.outputs.added }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Modified | ${{ steps.changes.outputs.modified }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Deleted | ${{ steps.changes.outputs.deleted }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Sources affected:** ${{ steps.sources.outputs.affected || 'None' }}" >> $GITHUB_STEP_SUMMARY
