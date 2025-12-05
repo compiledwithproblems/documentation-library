@@ -47,6 +47,7 @@ All notable changes to this project will be documented in this file.
   - Calls `GET /sources` to retrieve registered sources
   - Maps folder names (e.g., `apple`) to source UUIDs before calling `/ingest`
   - Gracefully skips sources not registered in the API
+- Fixed API response parsing to use `sources` field instead of `data`
 
 ### Added (continued)
 
