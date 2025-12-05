@@ -43,6 +43,10 @@ All notable changes to this project will be documented in this file.
 - Replaced webhook-based pipeline notification with direct API call to `/ingest` endpoint
 - Updated secrets from `PIPELINE_WEBHOOK_URL` to `PIPELINE_API_URL` for clearer naming
 - Pipeline integration now triggers incremental ingest per affected source
+- Workflow now fetches source registry from API and looks up UUIDs by source name
+  - Calls `GET /sources` to retrieve registered sources
+  - Maps folder names (e.g., `apple`) to source UUIDs before calling `/ingest`
+  - Gracefully skips sources not registered in the API
 
 ### Added (continued)
 
