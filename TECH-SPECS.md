@@ -1594,58 +1594,43 @@ Option B: Extension includes mappings, checks for updates
 
 ### Repository → RAG Pipeline
 
-The pipeline fetches from GitHub and parses frontmatter:
+When documentation changes are merged to main, a GitHub Action triggers the pipeline's ingest endpoint:
 
-```typescript
-// Pipeline source configuration
+**API Call:**
+
+```http
+POST {PIPELINE_API_URL}/ingest
+Authorization: Bearer {PIPELINE_API_KEY}
+Content-Type: application/json
+
 {
-  name: "captured-docs",
-  sourceType: "github",
-  githubRepo: "USER/documentation-library",
-  githubBranch: "main",
-  githubDocsPath: "sources/",  // Fetch everything under sources/
-}
-
-// Document parsing
-async function parseDocument(content: string, filePath: string) {
-  const { data: frontmatter, content: markdown } = matter(content);
-  
-  // Derive source from path if not in frontmatter
-  const source = frontmatter.source || filePath.split('/')[1];
-  
-  return {
-    title: frontmatter.title,
-    url: frontmatter.url,
-    breadcrumb: frontmatter.breadcrumb || [],
-    version: frontmatter.version || 'latest',
-    source,
-    content: markdown,
-    capturedAt: frontmatter.capturedAt,
-  };
+  "sourceId": "apple",
+  "mode": "incremental"
 }
 ```
 
-### Webhook Payload
+**Response:**
 
-When docs change, the repository notifies the pipeline:
-
-```typescript
-interface WebhookPayload {
-  event: 'docs_updated';
-  repository: string;           // "USER/documentation-library"
-  ref: string;                  // "refs/heads/main"
-  commit: string;               // SHA
-  sources: string;              // "apple,react" (comma-separated)
-  stats: {
-    added: number;
-    modified: number;
-    deleted: number;
-    total: number;
-  };
-  triggeredBy: string;          // GitHub username
-  timestamp: string;            // ISO 8601
+```json
+{
+  "success": true,
+  "workflowId": "abc-123",
+  "message": "Ingest workflow started"
 }
 ```
+
+The pipeline then:
+1. Fetches the source configuration
+2. Discovers changed documents via GitHub API
+3. Processes only new/modified documents (incremental mode)
+4. Updates embeddings in Vectorize
+
+**GitHub Secrets Required:**
+
+| Secret | Description | Example |
+|--------|-------------|---------|
+| `PIPELINE_API_URL` | Base URL of documentation-domain-api | `https://docs-api.example.workers.dev` |
+| `PIPELINE_API_KEY` | API key set via `wrangler secret put API_KEY` | `your-secret-key` |
 
 ---
 

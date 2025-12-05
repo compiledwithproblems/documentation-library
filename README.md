@@ -84,7 +84,7 @@ Updated automatically on merge.
 | Workflow | Trigger | Description |
 |----------|---------|-------------|
 | **Validate** | Push/PR | Validates frontmatter, paths, duplicates, sources |
-| **Notify Pipeline** | Push to main | Notifies RAG pipeline of changes |
+| **Trigger Ingest** | Push to main | Triggers RAG pipeline ingest |
 | **Update Stats** | Push to main, Weekly | Updates document statistics |
 | **Stale Check** | Monthly | Reports outdated documentation |
 | **Auto-Organize** | PR | Auto-fixes common formatting issues |
@@ -146,10 +146,12 @@ npm run all         # Run all checks
 
 For pipeline integration, set these repository secrets:
 
-| Secret | Description |
-|--------|-------------|
-| `PIPELINE_WEBHOOK_URL` | RAG pipeline webhook endpoint |
-| `PIPELINE_API_KEY` | API key for webhook authentication |
+| Secret | Description | Example |
+|--------|-------------|---------|
+| `PIPELINE_API_URL` | Base URL of documentation-domain-api | `https://docs-api.example.workers.dev` |
+| `PIPELINE_API_KEY` | API key for Bearer token auth | Set via `wrangler secret put API_KEY` |
+
+These are only needed for automatic pipeline triggers on merge. You can also trigger ingests manually via the API.
 
 ## Contributing
 

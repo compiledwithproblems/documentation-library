@@ -1,13 +1,19 @@
-name: Notify Pipeline
+name: Trigger Pipeline Ingest
 
 on:
   push:
     branches: [main]
     paths: ['sources/**']
+  workflow_dispatch:
+    inputs:
+      source:
+        description: 'Source to ingest (leave empty for all changed)'
+        required: false
+        type: string
 
 jobs:
-  notify:
-    name: Notify RAG Pipeline
+  trigger-ingest:
+    name: Trigger Ingest
     runs-on: ubuntu-latest
 
     steps:
@@ -16,66 +22,66 @@ jobs:
         with:
           fetch-depth: 2
 
-      - name: Get changed files
-        id: changes
-        run: |
-          # Get list of changed markdown files
-          CHANGED=$(git diff --name-only HEAD~1 HEAD -- 'sources/**/*.md' || echo "")
-
-          # Count changes
-          ADDED=$(git diff --name-only --diff-filter=A HEAD~1 HEAD -- 'sources/**/*.md' | wc -l | tr -d ' ')
-          MODIFIED=$(git diff --name-only --diff-filter=M HEAD~1 HEAD -- 'sources/**/*.md' | wc -l | tr -d ' ')
-          DELETED=$(git diff --name-only --diff-filter=D HEAD~1 HEAD -- 'sources/**/*.md' | wc -l | tr -d ' ')
-
-          echo "changed<<EOF" >> $GITHUB_OUTPUT
-          echo "$CHANGED" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-          echo "added=$ADDED" >> $GITHUB_OUTPUT
-          echo "modified=$MODIFIED" >> $GITHUB_OUTPUT
-          echo "deleted=$DELETED" >> $GITHUB_OUTPUT
-          echo "total=$((ADDED + MODIFIED + DELETED))" >> $GITHUB_OUTPUT
-
       - name: Determine affected sources
         id: sources
         run: |
-          SOURCES=$(echo "${{ steps.changes.outputs.changed }}" | \
-            grep -oP 'sources/\K[^/]+' | \
-            sort -u | \
-            tr '\n' ',' | \
-            sed 's/,$//' || echo "")
-          echo "affected=$SOURCES" >> $GITHUB_OUTPUT
+          if [ -n "${{ inputs.source }}" ]; then
+            # Manual trigger with specific source
+            echo "affected=${{ inputs.source }}" >> $GITHUB_OUTPUT
+          else
+            # Auto-detect from git diff
+            SOURCES=$(git diff --name-only HEAD~1 HEAD -- 'sources/**/*.md' 2>/dev/null | \
+              grep -oP 'sources/\K[^/]+' | \
+              sort -u | \
+              tr '\n' ' ' | \
+              xargs)
+            echo "affected=$SOURCES" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Notify pipeline
-        if: steps.changes.outputs.total != '0' && vars.PIPELINE_WEBHOOK_URL != ''
+      - name: Trigger ingest for each source
+        if: steps.sources.outputs.affected != ''
+        env:
+          API_URL: ${{ secrets.PIPELINE_API_URL }}
+          API_KEY: ${{ secrets.PIPELINE_API_KEY }}
         run: |
-          curl -X POST "${{ secrets.PIPELINE_WEBHOOK_URL }}" \
-            -H "Content-Type: application/json" \
-            -H "Authorization: Bearer ${{ secrets.PIPELINE_API_KEY }}" \
-            -d '{
-              "event": "docs_updated",
-              "repository": "${{ github.repository }}",
-              "ref": "${{ github.ref }}",
-              "commit": "${{ github.sha }}",
-              "sources": "${{ steps.sources.outputs.affected }}",
-              "stats": {
-                "added": ${{ steps.changes.outputs.added }},
-                "modified": ${{ steps.changes.outputs.modified }},
-                "deleted": ${{ steps.changes.outputs.deleted }},
-                "total": ${{ steps.changes.outputs.total }}
-              },
-              "triggeredBy": "${{ github.actor }}",
-              "timestamp": "${{ github.event.head_commit.timestamp }}"
-            }' || echo "Webhook notification skipped or failed"
+          if [ -z "$API_URL" ]; then
+            echo "PIPELINE_API_URL secret not set, skipping ingest trigger"
+            exit 0
+          fi
+
+          for SOURCE in ${{ steps.sources.outputs.affected }}; do
+            echo "Triggering ingest for: $SOURCE"
+
+            RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "${API_URL}/ingest" \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer ${API_KEY}" \
+              -d "{
+                \"sourceId\": \"${SOURCE}\",
+                \"mode\": \"incremental\"
+              }")
+
+            HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+            BODY=$(echo "$RESPONSE" | sed '$d')
+
+            if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
+              echo "✅ Successfully triggered ingest for $SOURCE"
+              echo "$BODY"
+            else
+              echo "❌ Failed to trigger ingest for $SOURCE (HTTP $HTTP_CODE)"
+              echo "$BODY"
+              exit 1
+            fi
+          done
 
       - name: Summary
+        if: steps.sources.outputs.affected != ''
         run: |
-          echo "### 📚 Documentation Update" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔄 Pipeline Ingest Triggered" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Metric | Count |" >> $GITHUB_STEP_SUMMARY
-          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Added | ${{ steps.changes.outputs.added }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Modified | ${{ steps.changes.outputs.modified }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Deleted | ${{ steps.changes.outputs.deleted }} |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Sources affected:** ${{ steps.sources.outputs.affected || 'None' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Sources:** ${{ steps.sources.outputs.affected }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Mode:** incremental" >> $GITHUB_STEP_SUMMARY
+
+      - name: No changes detected
+        if: steps.sources.outputs.affected == ''
+        run: |
+          echo "No documentation changes detected, skipping ingest trigger"

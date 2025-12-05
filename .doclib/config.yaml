@@ -126,20 +126,14 @@ quality:
 # =============================================================================
 
 integrations:
-  # Webhook to notify RAG pipeline
+  # Direct API call to documentation-domain-api
   pipeline:
     enabled: true
-    # URL stored in GitHub secret: PIPELINE_WEBHOOK_URL
-    # API key stored in GitHub secret: PIPELINE_API_KEY
-    events:
-      - docs_added
-      - docs_updated
-      - docs_deleted
-
-  # Trigger full reindex on schedule
-  scheduledReindex:
-    enabled: false
-    cron: "0 0 * * 0"  # Weekly on Sunday
+    # Calls POST /ingest on the documentation-domain-api
+    # Secrets required:
+    #   PIPELINE_API_URL - Base URL of the API (e.g., https://docs-api.example.workers.dev)
+    #   PIPELINE_API_KEY - API key for Bearer token auth
+    triggerOnMerge: true
 
 # =============================================================================
 # GitHub Actions Configuration

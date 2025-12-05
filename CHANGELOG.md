@@ -33,10 +33,19 @@ All notable changes to this project will be documented in this file.
   - `update-readme-stats.js` - Updates statistics in README.md
 - GitHub Actions workflows:
   - `validate.yml` - Validates documentation on push/PR
-  - `notify-pipeline.yml` - Notifies RAG pipeline of changes
+  - `notify-pipeline.yml` - Triggers RAG pipeline ingest via direct API call
   - `update-stats.yml` - Updates statistics on merge and weekly
   - `stale-check.yml` - Monthly check for stale documents
   - `auto-organize.yml` - Auto-fixes issues in PRs
+
+### Changed
+
+- Replaced webhook-based pipeline notification with direct API call to `/ingest` endpoint
+- Updated secrets from `PIPELINE_WEBHOOK_URL` to `PIPELINE_API_URL` for clearer naming
+- Pipeline integration now triggers incremental ingest per affected source
+
+### Added (continued)
+
 - Issue templates:
   - `new-source.md` - Request new documentation source
   - `stale-report.md` - Report stale documentation
