@@ -70,11 +70,11 @@ capturedAt: 2024-12-05T10:30:00Z
 <!-- STATS_START -->
 | Source | Documents | Last Updated |
 |--------|-----------|--------------|
-| apple | 0 | - |
-| react | 0 | - |
+| apple | 1 | 2025-12-05 |
 | cloudflare | 0 | - |
-| typescript | 0 | - |
 | mdn | 0 | - |
+| react | 0 | - |
+| typescript | 0 | - |
 <!-- STATS_END -->
 
 Updated automatically on merge.

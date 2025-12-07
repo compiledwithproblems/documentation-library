@@ -1,52 +1,36 @@
-# sources/apple/.source.yaml
-# Per-source configuration and metadata
-
-# Basic information (can override sources.yaml)
 name: apple
-displayName: "Apple Developer Documentation"
-baseUrl: "https://developer.apple.com"
-
-# Extraction hints for the browser extension
+displayName: Apple Developer Documentation
+baseUrl: https://developer.apple.com
 extraction:
-  # Primary programming language
   primaryLanguage: swift
-
-  # CSS selectors for content extraction
   selectors:
     content:
-      - ".documentation-content"
-      - ".doc-content"
-      - "main article"
+      - .documentation-content
+      - .doc-content
+      - main article
     title:
-      - ".topic-title h1"
-      - "h1"
+      - .topic-title h1
+      - h1
     breadcrumb:
-      - ".navigator-breadcrumbs a"
-      - ".hierarchy-list a"
+      - .navigator-breadcrumbs a
+      - .hierarchy-list a
     version:
-      - ".availability"
-      - ".platforms"
+      - .availability
+      - .platforms
     codeBlocks:
-      - "pre code"
-      - ".code-listing code"
-
-# Custom path mappings for this source
+      - pre code
+      - .code-listing code
 pathMappings:
-  # URL path segment → local directory
   swiftui: swiftui
   uikit: uikit
   foundation: foundation
   combine: combine
   appkit: appkit
-
-# Statistics (auto-updated by GitHub Actions)
 stats:
-  documentCount: 0
-  lastUpdated: null
-  lastCapturedAt: null
+  documentCount: 1
+  lastUpdated: 2025-12-07T02:24:44.485Z
+  lastCapturedAt: 2025-12-05T17:11:24.653Z
   topContributors: []
-
-# Source-specific notes
 notes: |
   Apple Developer Documentation uses JavaScript rendering.
   Content must be captured via browser extension, not scraped.
