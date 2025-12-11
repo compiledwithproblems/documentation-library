@@ -70,7 +70,7 @@ capturedAt: 2024-12-05T10:30:00Z
 <!-- STATS_START -->
 | Source | Documents | Last Updated |
 |--------|-----------|--------------|
-| apple | 1 | 2025-12-05 |
+| apple | 1 | 2025-12-11 |
 | cloudflare | 0 | - |
 | mdn | 0 | - |
 | react | 0 | - |
