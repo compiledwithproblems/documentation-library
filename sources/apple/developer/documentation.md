@@ -1,371 +1,330 @@
 ---
-title: Prompting an on-device foundation model
+title: Adding intelligent app features with generative models
 url: >-
-  https://developer.apple.com/documentation/foundationmodels/prompting-an-on-device-foundation-model
-capturedAt: '2025-12-05T17:11:24.653Z'
+  https://developer.apple.com/documentation/foundationmodels/adding-intelligent-app-features-with-generative-models
+capturedAt: '2025-12-11T19:22:19.112Z'
 breadcrumb:
   - Developer
   - Documentation
-version: latest
+version: iOS 26.0
 language: swift
 source: apple
 ---
-## [Overview](/documentation/foundationmodels/prompting-an-on-device-foundation-model#overview)
+## [Overview](/documentation/foundationmodels/adding-intelligent-app-features-with-generative-models#Overview)
 
-Many prompting techniques are designed for server-based “frontier” foundation models, because they have a larger context window and thinking capabilities. However, when prompting an on-device model, your prompt engineering technique is even more critical because the model you access is much smaller.
+This sample project shows how to integrate generative AI capabilities into an app using the Foundation Models framework. The sample app showcases intelligent trip planning features that help people discover landmarks and generate personalized itineraries.
 
-To generate accurate, hallucination-free responses, your prompt needs to be concise and specific. To get a better output from the model, some techniques you can use include:
+The app creates an interactive experience where people can:
 
--   Use simple, clear instructions
+-   Browse curated landmarks with rich visual content
     
--   Iterate and improve your prompt based on the output you receive in testing
+-   Generate trip itineraries tailored to a chosen landmark
     
--   Provide the model with a reasoning field before answering a prompt
+-   Discover points of interest using a custom tool
     
--   Reduce the thinking the model needs to do
-    
--   Split complex prompts into a series of simpler requests
-    
--   Add “logic” to conditional prompts with “if-else” statements
-    
--   Leverage shot-based prompting — such as one-shot, few-shot, or zero-shot prompts — to provide the model with specific examples of what you need
+-   Experience real-time content generation with streaming responses
     
 
-You’ll need to test your prompts throughout development and evaluate the output to provide a great user experience.
+> **Note:** Note
 
-## [Concepts for creating great prompts](/documentation/foundationmodels/prompting-an-on-device-foundation-model#Concepts-for-creating-great-prompts)
+This sample code project is associated with WWDC25 session 259: [Code-along: Add Intelligence to your App using the Foundation Models framework](https://developer.apple.com/wwdc25/259/).
 
-With prompt engineering, you structure your requests by refining how you phrase questions, provide context, and format instructions. It also requires testing and iteration of your input to get the results your app needs.
+## [Configure the sample code project](/documentation/foundationmodels/adding-intelligent-app-features-with-generative-models#Configure-the-sample-code-project)
 
-You can also structure prompts to make the model’s response depend on specific conditions or criteria in the input. For example, instead of giving one fixed instruction you can include different conditions, like:
+To run this sample, you’ll need to:
 
-*If it’s a question, answer it directly. If it’s a statement, ask a follow-up question.*
+1.  Set the developer team in Xcode for the app target so it automatically manages the provisioning profile. For more information, see [Set the bundle ID](https://developer.apple.com/documentation/xcode/preparing-your-app-for-distribution#Set-the-bundle-ID) and [Assign the project to a team](https://developer.apple.com/documentation/xcode/preparing-your-app-for-distribution#Assign-the-project-to-a-team).
+    
+2.  In the Developer portal, enable the WeatherKit app service for your bundle ID so the app can access location-based weather information.
+    
 
-## [Keep prompts simple and clear](/documentation/foundationmodels/prompting-an-on-device-foundation-model#Keep-prompts-simple-and-clear)
+## [Check model availability](/documentation/foundationmodels/adding-intelligent-app-features-with-generative-models#Check-model-availability)
 
-Effective prompts use simple language that tells the model what output you want it to provide. The model processes text in units, called *tokens*, and each model has a maximum number of tokens it can process — the context window size. An on-device model has fewer parameters and a small context window, so it doesn’t have the resources to handle long or confusing prompts. Input to a frontier model might be the length of a full document, but your input to the on-device model needs to be short and succinct. Ask yourself whether your prompt is understandable to a human if they read it quickly, and consider additional strategies to adjust your tone and writing style:
-
-| 
-✅ Prompting strategies to use
-
- | 
-
-🚫 Prompting strategies to avoid
-
- |
-| --- | --- |
-| 
-
-Focus on a single, well-defined goal
-
- | 
-
-Combining multiple unrelated requests
-
- |
-| 
-
-Be direct with imperative verbs like “List” or “Create”
-
- | 
-
-Unnecessary politeness or hedging
-
- |
-| 
-
-Tell the model what role to play, for example, an interior designer
-
- | 
-
-Passive voice, for example, “code needs to be optimized”
-
- |
-| 
-
-Write in direct, conversational tone with simple, clear sentences
-
- | 
-
-Jargon the model might not understand or interpret incorrectly
-
- |
-| 
-
-State your request clearly
-
- | 
-
-Too short of a prompt that doesn’t outline the task
-
- |
-| 
-
-Limit your prompt to one to three paragraphs
-
- | 
-
-Too long of a prompt that makes it hard to identify what the task is
-
- |
-
-An on-device model may get confused with a long and indirect instruction because it contains unnecessary language that doesn’t add value. Instead of indirectly implying what the model needs to do, write a direct command to improve the clarity of the prompt for better results. This clarity also reduces the complexity and context window size for the on-device model.
-
-✅ **Concise and direct**
-
-*Given a person’s home-decor transactions and search history, generate three categories they might be interested in, starting with the most relevant category. Generate two more categories related to home-decor but that are not in their transaction or search history.*
-
-🚫 **Long and indirect**
-
-*The person’s input contains their recent home-decor transaction history along with their recent search history. The response should be a list of existing categories of content the person might be interested relevant to their search and transactions, ordered so that the first categories in the list are most relevant. For inspiration, the response should also include new categories that spark creative ideas that aren’t covered in any of the categories you generate.*
-
-For more information on managing the context window size, see [TN3193: Managing the on-device foundation model’s context window](/documentation/Technotes/tn3193-managing-the-on-device-foundation-model-s-context-window).
-
-## [Give the model a role, persona, and tone](/documentation/foundationmodels/prompting-an-on-device-foundation-model#Give-the-model-a-role-persona-and-tone)
-
-By default, the on-device model typically responds to questions in a neutral and respectful tone, with a business-casual persona. Similar to frontier models, you can provide a role or persona to dramatically change how the on-device model responds to your prompt.
-
-A *role* is the functional position or job that you instruct the model to assume, while a *persona* reflects the personality of the model. You often use both in prompts; for example:
-
-*You are a senior software engineer who values mentoring junior developers.*
-
-Here the role is “a senior software engineer,” and the persona is “mentoring junior developers.”
-
-The model phrases its response differently to match a persona, for example, “mentoring junior developers” or “evaluating developer coding” even when you give it the same input for the same task.
-
-To give the model a role, use the phrase “you are”:
-
-**English Teacher**
-
-*You are an expert English teacher. Provide feedback on the person’s sentence to help them improve clarity.*
-
-**Cowboy**
-
-*You are a lively cowboy who loves to chat about horses and make jokes. Provide feedback on the person’s sentence to help them improve clarity.*
-
-Use the phrase “expert” to get the model to speak with more authority and detail on a topic.
-
-Similarly, change the model’s behavior by providing a role or persona for the person using your app. By default, the on-device model thinks it’s talking to a person, so tell the model more about who *that* person is:
-
-**Student**
-
-*The person is a first-grade English student. Give the person feedback on their writing.*
-
-**Ghost**
-
-*Greet a customer who enters your alchemy shop. The customer is a friendly ghost.*
-
-The student persona causes the model to respond as if speaking to a child in the first grade, while the ghost persona causes the model to respond as if speaking to a ghost in an alchemy shop.
-
-Change the model’s tone by writing your prompt in a voice you want the model to match. For example, if you write your prompt in a peppy and cheerful way, or talk like a cowboy, the model responds with a matching tone.
-
-**Professional**
-
-*Communicate as an experienced interior designer consulting with a client. Occasionally reference design elements like harmony, proportion, or focal points.*
-
-**Medieval Scholar**
-
-*Communicate as a learned scribe from a medieval library. Use slightly archaic language (“thou shalt,” “wherein,” “henceforth”) but keep it readable.”*
-
-## [Iterate and improve instruction following](/documentation/foundationmodels/prompting-an-on-device-foundation-model#Iterate-and-improve-instruction-following)
-
-*Instruction following* refers to a foundation model’s ability to carry out a request exactly as written in your [`Prompt`](/documentation/foundationmodels/prompt) and [`Instructions`](/documentation/foundationmodels/instructions). Prompt engineering involves iteration to test and refine input — based on the results you get — to improve accuracy and consistency. If you notice the model isn’t following instructions as well as you need, consider the following strategies:
-
-| 
-Strategy
-
- | 
-
-Approach
-
- |
-| --- | --- |
-| 
-
-Improve clarity
-
- | 
-
-Improve the wording of your input to make it more direct, concise, and easier to read.
-
- |
-| 
-
-Use emphasis
-
- | 
-
-Emphasize the importance of a command by adding words like “must, “should”, “do not” or avoid”.
-
- |
-| 
-
-Repeat yourself
-
- | 
-
-Try repeating key instructions at the end of your input to emphasize the importance.
-
- |
-
-Instead of trying to enforce accuracy, use a succinct prompt like “Answer this question” and evaluate the results you get.
-
-After you try any strategy, take the time to evaluate it to see if the result gets closer to what you need. If the model can’t follow your prompt, it might be unreliable in some use cases. Try cutting back the number of times you repeat a phrase, or the number of words you emphasize, to make your prompt more effective. Unreliable prompts break easily when conditions change slightly.
-
-Another prompting strategy is to split your request into a series of simpler requests. This is particularly useful after trying different strategies that don’t improve the quality of the results.
-
-## [Reduce how much thinking the model needs to do](/documentation/foundationmodels/prompting-an-on-device-foundation-model#Reduce-how-much-thinking-the-model-needs-to-do)
-
-A model’s reasoning ability is how well it thinks through a problem like a human, handles logical puzzles, or creates a logical plan to handle a request. Because of their smaller size, on-device models have limited reasoning abilities. You may be able to help an on-device model *think through* a challenging task by providing additional support for its reasoning.
-
-For complex tasks, simple language prompts might not have enough detail about how the model can accomplish a task. Instead, reduce the reasoning burden on the model by giving it a step-by-step plan. This approach tells the model more precisely how to do the task:
-
-**Step-by-step**
-
-*Given a person’s home-decor transactions and search history related to couches:*
-
-*1\. Choose four home furniture categories that are most relevant to this person.*
-
-*2\. Recommend two more categories related to home-decor.*
-
-*3\. Return a list of relevant and recommended categories, ordered by most relevant to least.*
-
-If you find the model isn’t accomplishing the task reliably, break up the steps across multiple [`LanguageModelSession`](/documentation/foundationmodels/languagemodelsession) instances to focus on one part at a time with a new context window. Typically, it’s a best practice to start with a single request because multiple requests can result in longer inference time. But, if the result doesn’t meet your expectations, try splitting steps into multiple requests.
-
-## [Turn conditional prompting into programming logic](/documentation/foundationmodels/prompting-an-on-device-foundation-model#Turn-conditional-prompting-into-programming-logic)
-
-*Conditional* prompting is where you embed if-else logic into your prompt. A server-based frontier model has the context window and reasoning abilities to handle a lengthy list of instructions for how to handle different requests. An on-device model can handle some conditionals or light reasoning, like:
-
-*Use the weather tool if the person asks about the weather and the calendar tool if the person asks about events.*
-
-But, too much conditional complexity can affect the on-device model’s ability to follow instructions.
-
-When the on-device model output doesn’t meet your expectations, try customizing your conditional prompt to the current context. For example, the following conditional prompt contains several sentences that break up what the model needs to do:
+Before using the on-device model in the app, check that the model is available by creating an instance of [`SystemLanguageModel`](/documentation/foundationmodels/systemlanguagemodel) with the [`default`](/documentation/foundationmodels/systemlanguagemodel/default) property:
 
 ```swift
-let instructions = """
-    You are a friendly innkeeper. Generate a greeting to a new guest that walks in the door.
-    IF the guest is a sorcerer, comment on their magical appearance.
-    IF the guest is a bard, ask if they're willing to play music for the inn tonight.
-    IF the guest is a soldier, ask if there’s been any dangerous activity in the area.
-    There is one single and one double room available.
-    """
+let landmark: Landmark
+private let model = SystemLanguageModel.default
 
-```
-
-Instead, use programming logic to customize the prompt based on known information:
-
-```swift
-var customGreeting = ""
-switch role {
-case .bard:
-    customGreeting = """
-        This guest is a bard. Ask if they’re willing to play music for the inn tonight.
-        """
-case .soldier:
-    customGreeting = """
-        This guest is a soldier. Ask if there’s been any dangerous activity in the area.
-        """
-case .sorcerer:
-    customGreeting = """
-        This guest is a sorcerer. Comment on their magical appearance.
-        """
-default:
-    customGreeting = "This guest is a weary traveler."
+var body: some View {
+    switch model.availability {
+    case .available:
+        LandmarkTripView(landmark: landmark)
+    case .unavailable(.appleIntelligenceNotEnabled):
+        MessageView(
+            landmark: self.landmark,
+            message: """
+                     Trip Planner is unavailable because \
+                     Apple Intelligence hasn't been turned on.
+                     """
+        )
+    case .unavailable(.modelNotReady):
+        MessageView(
+            landmark: self.landmark,
+            message: "Trip Planner isn't ready yet. Try again later."
+        )
+    }
 }
 
-let instructions = """
-    You are a friendly inn keeper. Generate a greeting to a new guest that walks in the door.
-    \(customGreeting)
-    There is one single and one double room available.
-    """
-
 ```
 
-When you customize instructions programmatically, the model doesn’t get distracted or confused by conditionals that don’t apply in the situation. This approach also reduces the context window size.
+The app handles two unavailability scenarios: Apple Intelligence isn’t enabled or the model isn’t ready for usage. If Apple Intelligence is off, the app tells the person they need to turn it on and if the model isn’t ready, it tells the person the Trip Planner isn’t ready and to try the app again later.
 
-## [Provide simple input-output examples](/documentation/foundationmodels/prompting-an-on-device-foundation-model#Provide-simple-input-output-examples)
+> **Note:** Note
 
-*Few-shot* prompting is when you provide the on-device model with a few examples of the output you want. For example, the following shows the model different kinds of coffee shop customers it needs to generate:
+To use the on-device language model, people need to turn on Apple Intelligence on their device. For a list of supported devices, see [Apple Intelligence](https://www.apple.com/apple-intelligence/).
 
-```swift
-// Instructions that contain JSON key-value pairs that represent the structure
-// of a customer. The structure tells the model that each customer must have
-// a `name`, `imageDescription`, and `coffeeOrder` fields.
-let instructions = """
-    Create an NPC customer with a fun personality suitable for the dream realm. \
-    Have the customer order coffee. Here are some examples to inspire you:
+## [Define structured data for generation](/documentation/foundationmodels/adding-intelligent-app-features-with-generative-models#Define-structured-data-for-generation)
 
-    {name: "Thimblefoot", imageDescription: "A horse with a rainbow mane", \
-    coffeeOrder: "I would like a coffee that's refreshing and sweet, like the grass in a summer meadow."}
-    {name: "Spiderkid", imageDescription: "A furry spider with a cool baseball cap", \
-    coffeeOrder: "An iced coffee please, that's as spooky as I am!"}
-    {name: "Wise Fairy", imageDescription: "A blue, glowing fairy that radiates wisdom and sparkles", \
-    coffeeOrder: "Something simple and plant-based, please. A beverage that restores my wise energy."}
-    """
+The app starts by defining data structures with specific constraints to control what the model generates. The `Itinerary` type uses the [`Generable`](/documentation/foundationmodels/generable) macro to create structured content that includes travel plans with activities, hotels, and restaurants.
 
-```
-
-Few-shot prompting also works with *guided generation*, which formats the model’s output by using a custom type you define. In the previous prompt, each example might correspond to a [`Generable`](/documentation/foundationmodels/generable) structure you create named `NPC`:
+The `@Generable` macro automatically converts Swift types into schemas that the model uses for constrained sampling, so you can specify guides to control the values you associate with it. For example, the app uses [`Guide(description:)`](/documentation/foundationmodels/guide\(description:\)) to make sure the model creates an exciting name for the trip. It also uses [`anyOf(_:)`](/documentation/foundationmodels/generationguide/anyof\(_:\)) and [`count(_:)`](/documentation/foundationmodels/generationguide/count\(_:\)) to choose any destination from our `ModelData` and show exactly 3 `DayPlan` objects per destination, respectively.
 
 ```swift
 @Generable
-struct NPC: Equatable {
-    let name: String
-    let coffeeOrder: String
-    let imageDescription: String
+struct Itinerary: Equatable {
+    @Guide(description: "An exciting name for the trip.")
+    let title: String
+    @Guide(.anyOf(ModelData.landmarkNames))
+    let destinationName: String
+    let description: String
+    @Guide(description: "An explanation of how the itinerary meets the person's special requests.")
+    let rationale: String
+
+    @Guide(description: "A list of day-by-day plans.")
+    @Guide(.count(3))
+    let days: [DayPlan]
 }
 
-```
-
-On-device models need simpler examples for few-shot prompts than what you can use with server-based frontier models. Try giving the model between 2-15 examples, and keep each example as simple as possible. If you provide a long or complex example, the on-device model may start to repeat your example or hallucinate details of your example in its response.
-
-For more information on guided generation, see [Generating Swift data structures with guided generation](/documentation/foundationmodels/generating-swift-data-structures-with-guided-generation).
-
-## [Handle on-device reasoning](/documentation/foundationmodels/prompting-an-on-device-foundation-model#Handle-on-device-reasoning)
-
-Reasoning prompt techniques, like “think through this problem step by step”, can result in unexpected text being inserted into your [`Generable`](/documentation/foundationmodels/generable) structure if the model doesn’t have a place for its reasoning. To keep reasoning explanations out of your structure, try giving the model a specific field where it can put its reasoning. Make sure the reasoning field is the first property so the model can provide reasoning details before answering the prompt:
-
-```swift
 @Generable
-struct ReasonableAnswer {
-    // A property the model uses for reasoning.
-    var reasoningSteps: String
-    
-    @Guide(description: "The answer only.")
-    var answer: MyCustomGenerableType // Replace with your custom generable type.
+struct DayPlan: Equatable {
+    @Guide(description: "A unique and exciting title for this day plan.")
+    let title: String
+    let subtitle: String
+    let destination: String
+
+    @Guide(.count(3))
+    let activities: [Activity]
+}
+
+@Generable
+struct Activity: Equatable {
+    let type: Kind
+    let title: String
+    let description: String
+}
+
+@Generable
+enum Kind {
+    case sightseeing
+    case foodAndDining
+    case shopping
+    case hotelAndLodging
 }
 
 ```
 
-Using your custom [`Generable`](/documentation/foundationmodels/generable) type, prompt the model:
+The `@Generable` macro automatically creates two versions of each type: the complete structure and a [`PartiallyGenerated`](/documentation/foundationmodels/generable/partiallygenerated) version which is a mirror of the outer structure except every property is optional. The app uses this `PartiallyGenerated` version when streaming and displaying the itinerary generation.
+
+## [Configure the model session](/documentation/foundationmodels/adding-intelligent-app-features-with-generative-models#Configure-the-model-session)
+
+After checking that the model is available, the app configures a [`LanguageModelSession`](/documentation/foundationmodels/languagemodelsession) object with custom tools and detailed instructions in `ItineraryPlanner`. Given a location, the initializer creates the session with structured guidance for generating personalized trip recommendations.
 
 ```swift
-let instructions = """
-    Answer the person's question.
-    1. Begin your response with a plan to solve this question.
-    2. Follow your plan's steps and show your work.
-    3. Deliver the final answer in `answer`.
-    """
-var session = LanguageModelSession(instructions: instructions)
-
-// The answer should be 30 days.
-let prompt = "How many days are in the month of September?"
-let response = try await session.respond(
-    to: prompt,
-    generating: ReasonableAnswer.self
-)
+init(landmark: Landmark) {
+    self.landmark = landmark
+    Logging.general.log("The landmark is... \(landmark.name)")
+    let pointOfInterestTool = FindPointsOfInterestTool(landmark: landmark)
+    self.session = LanguageModelSession(
+        tools: [pointOfInterestTool],
+        instructions: Instructions {
+            "Your job is to create an itinerary for the person."
+            
+            "Each day needs an activity, hotel and restaurant."
+            
+            """
+            Always use the findPointsOfInterest tool to find businesses \
+            and activities in \(landmark.name), especially hotels \
+            and restaurants.
+            
+            The point of interest categories may include:
+            """
+            FindPointsOfInterestTool.categories
+            
+            """
+            Here is a description of \(landmark.name) for your reference \
+            when considering what activities to generate:
+            """
+            landmark.description
+        }
+    )
+    self.pointOfInterestTool = pointOfInterestTool
+}
 
 ```
 
-You may see the model fail to reason its way to a correct answer, or it may answer unreliably — occasionally answering correctly, and sometimes not. If this happens, the tasks in your prompt may be too difficult for the on-device model to process, regardless of how you structure the prompt.
+In a generated itinerary, the model instructions ensure that each day contains an activity, hotel, and restaurant. To get the location-specific businesses and activities, the sample uses a custom tool, called `FindPointsOfInterestTool`, with the chosen landmark. The instructions also call the landmark description property as added context when generating the activities.
 
-## [Provide actionable feedback](/documentation/foundationmodels/prompting-an-on-device-foundation-model#Provide-actionable-feedback)
+## [Create a custom tool](/documentation/foundationmodels/adding-intelligent-app-features-with-generative-models#Create-a-custom-tool)
 
-When you encounter something with the on-device model that you expect to work but it doesn’t, file a report that includes your prompt with Feedback Assistant to help improve the system model. To submit feedback about model behavior through Feedback Assistant, see [`logFeedbackAttachment(sentiment:issues:desiredOutput:)`](/documentation/foundationmodels/languagemodelsession/logfeedbackattachment\(sentiment:issues:desiredoutput:\)).
+You can use custom tools to extend the functionality of a model. Tool-calling allows the model to interact with external code you create to fetch up-to-date information, ground responses in sources of truth that you provide, and perform side effects.
 
-## [See Also](/documentation/foundationmodels/prompting-an-on-device-foundation-model#see-also)
+The model in this app uses the `FindPointsOfInterestTool` tool to enable dynamic discovery of specific businesses and activities for the chosen landmark. The tool uses the `@Generable` macro to make its categories and arguments available to the model.
 
-### [Prompting](/documentation/foundationmodels/prompting-an-on-device-foundation-model#Prompting)
+```swift
+@Observable
+final class FindPointsOfInterestTool: Tool {
+    let name = "findPointsOfInterest"
+    let description = "Finds points of interest for a landmark."
+    
+    let landmark: Landmark
+    
+    @MainActor var lookupHistory: [Lookup] = []
+    
+    init(landmark: Landmark) {
+        self.landmark = landmark
+    }
 
-[`class LanguageModelSession`](/documentation/foundationmodels/languagemodelsession)An object that represents a session that interacts with a language model.[`struct Instructions`](/documentation/foundationmodels/instructions)Details you provide that define the model’s intended behavior on prompts.[`struct Prompt`](/documentation/foundationmodels/prompt)A prompt from a person to the model.[`struct Transcript`](/documentation/foundationmodels/transcript)A linear history of entries that reflect an interaction with a session.[`struct GenerationOptions`](/documentation/foundationmodels/generationoptions)Options that control how the model generates its response to a prompt.
+@Generable
+enum Category: String, CaseIterable {
+    case campground
+    case hotel
+    case cafe
+    case museum
+    case marina
+    case restaurant
+    case nationalMonument
+}
+
+@Generable
+struct Arguments {
+    @Guide(description: "This is the type of destination to look up for.")
+    let pointOfInterest: Category
+
+    @Guide(description: "The natural language query of what to search for.")
+    let naturalLanguageQuery: String
+}
+
+```
+
+When you prompt the model with a question or make a request, the model decides whether it can provide an answer or if it needs the help of a tool. The app explicitly instructs the model to always use the `findPointsOfInterestTool` in the `ItineraryPlanner` instructions. This allows the model to automatically call the tool to find relevant hotels, restaurants, and activities for the destinations.
+
+## [Stream and display partial responses in real time](/documentation/foundationmodels/adding-intelligent-app-features-with-generative-models#Stream-and-display-partial-responses-in-real-time)
+
+The app shows real-time content generation by streaming partial responses from the model. The `ItineraryPlanner` uses [`streamResponse(generating:includeSchemaInPrompt:options:prompt:)`](/documentation/foundationmodels/languagemodelsession/streamresponse\(generating:includeschemainprompt:options:prompt:\)) to generate `Itinerary.PartiallyGenerated` objects so itinerary items are shown incrementally to the person.
+
+You can opt for specific [`GenerationOptions`](/documentation/foundationmodels/generationoptions) to adjust the way the model generates these responses. For generating the itinerary, the app opts for a [`greedy`](/documentation/foundationmodels/generationoptions/samplingmode/greedy) sampling mode so the model always results in the same output for a given input. This ensures the prompt generates consistent recommendations for an itinerary specific to the given landmark.
+
+```swift
+private(set) var itinerary: Itinerary.PartiallyGenerated?
+
+func suggestItinerary(dayCount: Int) async throws {
+    let stream = session.streamResponse(
+        generating: Itinerary.self,
+        includeSchemaInPrompt: false,
+        options: GenerationOptions(sampling: .greedy)
+    ) {
+        "Generate a \(dayCount)-day itinerary to \(landmark.name)."
+
+        "Give it a fun title and description."
+
+        "Here is an example, but don't copy it:"
+        Itinerary.exampleTripToJapan
+    }
+
+    for try await partialResponse in stream {
+        itinerary = partialResponse.content
+    }
+}
+
+```
+
+The app presents the responses in a SwiftUI view. The `ItineraryPlanningView` displays real-time visual feedback as the model searches for points of interest, showing people what’s happening when generating content:
+
+```swift
+ForEach(planner.pointOfInterestTool.lookupHistory) { element in
+    HStack {
+        Image(systemName: "location.magnifyingglass")
+        Text("Searching **\(element.history.pointOfInterest.rawValue)** in \(landmark.name)...")
+    }
+    .transition(.blurReplace)
+}
+
+```
+
+The app displays messages like “Searching **hotel** in Yosemite…” and “Searching **restaurant** in Yosemite…” to let people know which point of interest category the model provided as input to the tool when actively searching for nearby points of interest. In the background, however, the tool executes and provides updates to the view. The view shows a blurred overlay while generating each day plan, then reveals the full itinerary after the search completes.
+
+## [Tag content dynamically](/documentation/foundationmodels/adding-intelligent-app-features-with-generative-models#Tag-content-dynamically)
+
+The app uses content tagging on the provided landmarks to help people quickly understand the characteristics of each destination. A content tagging model produces a list of categorizing tags based on the input text you provide. When you prompt the content tagging model, it produces a tag that uses one to a few lowercase words. The `LandmarkDescriptionView` prompts the content tagging model to automatically generate relevant hashtags for landmark descriptions, like `#nature`, `#hiking`, or `#scenic`, based on each landmark’s description. For more information on initializing content tagging, see [Categorizing and organizing data with content tags](/documentation/FoundationModels/categorizing-and-organizing-data-with-content-tags).
+
+```swift
+let contentTaggingModel = SystemLanguageModel(useCase: .contentTagging)
+
+.task {
+    if !contentTaggingModel.isAvailable { return }
+    do {
+        let session = LanguageModelSession(model: contentTaggingModel)
+        let stream = session.streamResponse(
+            to: landmark.description,
+            generating: TaggingResponse.self,
+            options: GenerationOptions(sampling: .greedy)
+        )
+        for try await newTags in stream {
+            generatedTags = newTags.content
+        }
+    } catch {
+        Logging.general.error("\(error.localizedDescription)")
+    }
+}
+
+```
+
+## [Integrate with other framework features](/documentation/foundationmodels/adding-intelligent-app-features-with-generative-models#Integrate-with-other-framework-features)
+
+You can combine these generative model features with other Apple frameworks. For example, the `LocationLookup` class uses [MapKit](/documentation/MapKit) to search for addresses for our points of interest, showing how to combine model-generated content with weather information and location data for complete travel planning.
+
+```swift
+@Observable @MainActor
+final class LocationLookup {
+    private(set) var item: MKMapItem?
+    private(set) var temperatureString: String?
+
+    func performLookup(location: String) {
+        Task {
+            let item = await self.mapItem(atLocation: location)
+            if let location = item?.location {
+                self.temperatureString = await self.weather(atLocation: location)
+            }
+        }
+    }
+    
+    private func mapItem(atLocation location: String) async -> MKMapItem? {
+        let request = MKLocalSearch.Request()
+        request.naturalLanguageQuery = location
+        
+        let search = MKLocalSearch(request: request)
+        do {
+            return try await search.start().mapItems.first
+        } catch {
+            Logging.general.error("Failed to look up location: \(location). Error: \(error)")
+        }
+        return nil
+    }
+}
+
+```
+
+The model generates location names as text, and the `LocationLookup` class converts them into real, mappable locations using the natural language search capabilities in MapKit.
+
+## [See Also](/documentation/foundationmodels/adding-intelligent-app-features-with-generative-models#see-also)
+
+### [Essentials](/documentation/foundationmodels/adding-intelligent-app-features-with-generative-models#Essentials)
+
+[
+
+Generating content and performing tasks with Foundation Models](/documentation/foundationmodels/generating-content-and-performing-tasks-with-foundation-models)Enhance the experience in your app by prompting an on-device large language model.[
+
+Improving the safety of generative model output](/documentation/foundationmodels/improving-the-safety-of-generative-model-output)Create generative experiences that appropriately handle sensitive inputs and respect people.[
+
+Supporting languages and locales with Foundation Models](/documentation/foundationmodels/supporting-languages-and-locales-with-foundation-models)Generate content in the language people prefer when they interact with your app.[`class SystemLanguageModel`](/documentation/foundationmodels/systemlanguagemodel)An on-device large language model capable of text generation tasks.[`struct UseCase`](/documentation/foundationmodels/systemlanguagemodel/usecase)A type that represents the use case for prompting.
